@@ -985,6 +985,7 @@ int main() {
             case 17:
                 ghiLichLamNhanVien(Nv, m);
                 printf("Da ghi lich lam vao file LichLam.txt\n");
+                break;
             case 0:
                 printf("Dang thoat chuong trinh...\n");
                 break;
