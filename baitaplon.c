@@ -33,12 +33,6 @@ typedef struct NhanVien{
     tangCa *tangCa;
     lichNghi *lichNghi;
 }NhanVien;
-typedef struct phongBan{
-char tenPB[30];
-NhanVien *dsNhanVien;
-int slNhanVien;
-struct phongBan *next;
-}phongBan;
 //ham cap phat bo nho cho bien nhan vien
 NhanVien *capPhat(int n, NhanVien *nv){
     NhanVien *newNV=(NhanVien*)realloc(nv, n*sizeof(NhanVien));
@@ -75,66 +69,8 @@ void themNhanVien(NhanVien **nv,int n, int m){
         (*nv)[i].lichNghi=NULL;
     }
 }
-//ham xoa thong tin nhan vien trong phong ban
-void xoaThongTinNhanVienPhongBan(phongBan **head, char *maNv) {
-        if (*head==NULL) {
-                printf("Danh sach phong ban rong !\n");
-                return;
-        }
-        phongBan *temp = *head;
-        int found = 0;
-        while (temp != NULL) {
-                if (temp->dsNhanVien == NULL || temp->slNhanVien == 0) {
-                temp = temp->next;
-                continue;
-                }
-                for (int i = 0; i < temp->slNhanVien; i++) {
-                if (strcmp(temp->dsNhanVien[i].maNV, maNv) == 0) {
-                        LichLam *ll = temp->dsNhanVien[i].LichLam;
-                        while (ll != NULL) {
-                                LichLam *llTemp = ll;
-                                ll = ll->next;
-                                free(llTemp);
-                        }
-                        tangCa *tc = temp->dsNhanVien[i].tangCa;
-                        while (tc != NULL) {
-                                tangCa *tcTemp = tc;
-                                tc = tc->next;
-                                free(tcTemp);
-                        }
-                        lichNghi *ln = temp->dsNhanVien[i].lichNghi;
-                        while (ln != NULL) {
-                                lichNghi *lnTemp = ln;
-                                ln = ln->next;
-                                free(lnTemp);
-                        }
-                        for (int j = i; j < temp->slNhanVien - 1; j++) {
-                                temp->dsNhanVien[j] = temp->dsNhanVien[j + 1];
-                        }
-                        temp->slNhanVien--;
-                        if (temp->slNhanVien == 0) {
-                                free(temp->dsNhanVien);
-                                temp->dsNhanVien = NULL;
-                        }
-                        else {
-                        temp->dsNhanVien = realloc(temp->dsNhanVien, sizeof(NhanVien) * temp->slNhanVien);
-                        if (temp->dsNhanVien == NULL) {
-                                printf("Loi cap phat lai bo nho sau khi xoa!\n");
-                                return;
-                        }
-                }
-                printf("Da xoa nhan vien co ma so %s khoi phong %s.\n", maNv, temp->tenPB);
-                found = 1;
-                return;
-            }
-        }
-        temp = temp->next;
-    }
-    if (!found)
-        printf("Khong tim thay nhan vien ma ban muon xoa trong phong ban!\n");
-}
 //ham cap nhat thong tin sinh vien
-void capNhatThongTinNhanVien(NhanVien *nv, int m,phongBan *head){
+void capNhatThongTinNhanVien(NhanVien *nv, int m){
         if(nv==NULL){
                 printf("Danh sach rong !");
                 return;
@@ -165,34 +101,14 @@ void capNhatThongTinNhanVien(NhanVien *nv, int m,phongBan *head){
                         printf("Luong: ");
                         scanf("%f",&nv[i].luong);
                         getchar();
-                        if(head==NULL){
-                                printf("Danh sach phong ban rong nen chi cap nhan trong danh sach tong !\n");
-                                return;
+                        printf("Da cap nhat thanh cong !\n");
+                        return ;
                         }
-                        while(head!=NULL){
-                                if(head->dsNhanVien==NULL||head->slNhanVien==0){
-                                        head=head->next;
-                                        continue;
-                                }
-                                for(int j=0;j<head->slNhanVien;j++){
-                                        if(strcmp(head->dsNhanVien[j].maNV,maNv)==0){
-                                                strcpy(head->dsNhanVien[j].hoTen,nv[i].hoTen);
-                                                strcpy(head->dsNhanVien[j].gioiTinh,nv[i].gioiTinh);
-                                                strcpy(head->dsNhanVien[j].ngaySinh,nv[i].ngaySinh);
-                                                strcpy(head->dsNhanVien[j].ngayLam,nv[i].ngayLam);
-                                                strcpy(head->dsNhanVien[j].maNV,nv[i].maNV);
-                                                head->dsNhanVien[j].luong=nv[i].luong;
-                                                printf("Da cap nhan thong tin.\n");
-                                                return;
-                                        }
-                                }
-                        }
-                 }
-        }
+                }
         printf("Khong tim thay nhan vien co ma: %s\n",maNv);
 }
 //ham xoa nhan vien khoi danh sach
-void xoaNhanVien(NhanVien *nv,int *m,phongBan **head){
+void xoaNhanVien(NhanVien *nv,int *m){
          if(nv==NULL){
                 printf("Danh sach rong !");
                 return;
@@ -201,7 +117,6 @@ void xoaNhanVien(NhanVien *nv,int *m,phongBan **head){
         printf("Nhap ma nhan vien cua nhan vien ban muon xoa: ");
         fgets(maNv,sizeof(maNv),stdin);
         maNv[strcspn(maNv,"\n")]='\0';
-        xoaThongTinNhanVienPhongBan(head,maNv);
         for(int i=0;i<*m;i++){
                  if(strcmp(maNv,nv[i].maNV)==0){
                         LichLam *ll =nv[i].LichLam;
@@ -505,97 +420,6 @@ void capNhatLichLam(NhanVien *nv, int m){
                 printf("Khong tim thay nhan vien !\n");
         }
 }
-LichLam* cloneLichLam(LichLam *goc) {
-    if (!goc) return NULL;
-    LichLam *dau = NULL, *cuoi = NULL;
-    while (goc) {
-        LichLam *moi = (LichLam*)malloc(sizeof(LichLam));
-        strcpy(moi->caLam, goc->caLam);
-        strcpy(moi->batDau, goc->batDau);
-         strcpy(moi->ketThuc, goc->ketThuc);
-        moi->next = NULL;
-        if (!dau) {
-            dau = cuoi = moi;
-        } else {
-            cuoi->next = moi;
-            cuoi = moi;
-        }
-        goc = goc->next;
-    }
-    return dau;
-}
-tangCa *cloneTangCa(tangCa *goc) {
-    if (!goc) return NULL;
-    tangCa *dau = NULL, *cuoi = NULL;
-    while (goc) {
-        tangCa *moi = (tangCa *)malloc(sizeof(tangCa));
-        strcpy(moi->ngayTangCa, goc->ngayTangCa);
-        strcpy(moi->caTang, goc->caTang);
-        strcpy(moi->batDau, goc->batDau);
-        strcpy(moi->ketThuc, goc->ketThuc);
-        moi->next = NULL;
-        if (!dau) dau = cuoi = moi;
-        else cuoi = cuoi->next = moi;
-        goc = goc->next;
-    }
-    return dau;
-}
-lichNghi *cloneLichNghi(lichNghi *goc) {
-    if (!goc) return NULL;
-    lichNghi *dau = NULL, *cuoi = NULL;
-    while (goc) {
-        lichNghi *moi = (lichNghi *)malloc(sizeof(lichNghi));
-        strcpy(moi->ngayNghi, goc->ngayNghi);
-        strcpy(moi->caNghi, goc->caNghi);
-        strcpy(moi->batDau, goc->batDau);
-        strcpy(moi->ketThuc, goc->ketThuc);
-        moi->next = NULL;
-        if (!dau) dau = cuoi = moi;
-        else cuoi = cuoi->next = moi;
-        goc = goc->next;
-    }
-    return dau;
-}
-void capNhatThongTinNhanVienVaoPhongBan(NhanVien *dsTong, int soLuongTong, phongBan *dsPhong) {
-    if (!dsTong || soLuongTong == 0 || !dsPhong) {
-        printf("Danh sach tong hoac phong ban rong.\n");
-        return;
-    }
-    for (int i = 0; i < soLuongTong; i++) {
-        NhanVien *nv = &dsTong[i];
-        int daCapNhat = 0;
-        phongBan *pb = dsPhong;
-        while (pb) {
-            for (int j = 0; j < pb->slNhanVien; j++) {
-                if (strcmp(pb->dsNhanVien[j].maNV, nv->maNV) == 0) {
-                    strcpy(pb->dsNhanVien[j].hoTen, nv->hoTen);
-                    strcpy(pb->dsNhanVien[j].gioiTinh, nv->gioiTinh);
-                    strcpy(pb->dsNhanVien[j].ngaySinh, nv->ngaySinh);
-                    strcpy(pb->dsNhanVien[j].ngayLam, nv->ngayLam);
-                    pb->dsNhanVien[j].luong = nv->luong;
-                    LichLam *ll = pb->dsNhanVien[j].LichLam;
-                    while (ll) {
-                        LichLam *temp = ll;
-                        ll = ll->next;
-                        free(temp);
-                    }
-                        pb->dsNhanVien[j].LichLam = cloneLichLam(nv->LichLam);
-                        pb->dsNhanVien[j].tangCa = cloneTangCa(nv->tangCa);
-                        pb->dsNhanVien[j].lichNghi = cloneLichNghi(nv->lichNghi);
-                    daCapNhat = 1;
-                    break;
-                }
-            }
-            if (daCapNhat) break;
-            pb = pb->next;
-        }
-        if (!daCapNhat) {
-            printf("Nhan vien %s chua co trong phong ban => KHONG cap nhat.\n", nv->maNV);
-        }
-    }
-    printf("Da cap nhat thong tin nhan vien (va LichLam) tu danh sach tong vao cac phong ban.\n");
-}
-
 //ham in danh sach thong tin nhan vien
 void inDanhSachNhanVien(NhanVien *nv,int n){
     int stt=0;
@@ -914,132 +738,6 @@ void timCaLamNhanVien(NhanVien *nv, int m){
                 }
         }
 }
-//ham cap phat bo nho cho phong ban
-phongBan *capPhatPhong(){
-        phongBan *newpb=(phongBan*)malloc(sizeof(phongBan));
-        if(newpb==NULL){
-                return NULL;
-        }
-        newpb->dsNhanVien=NULL;
-        newpb->next=NULL;
-        return newpb;
-}
-//ham them phong ban
-void themPhongBan(phongBan **head){
-phongBan *newPB=capPhatPhong();
-        if(newPB==NULL){
-                printf("Khong the cap phat !\n");
-                return;
-        }
-        printf("Nhap ten phong ban: ");
-        fgets(newPB->tenPB,sizeof(newPB->tenPB),stdin);
-        newPB->tenPB[strcspn(newPB->tenPB,"\n")]='\0';
-        newPB->slNhanVien=0;
-        newPB->next=NULL;
-        if(*head==NULL){
-                *head=newPB;
-        }
-         else{
-                phongBan *temp=*head;
-                while(temp->next!=NULL){
-                        temp=temp->next;
-                }
-                temp->next=newPB;
-         }
-         printf("Them thanh cong !\n");
-}
-//ham thu xem nhan vien da co trong phong ban chua
-int nhanVienDaCoTrongPhongBan(phongBan *head, char *maNV) {
-    while (head != NULL) {
-        for (int i = 0; i < head->slNhanVien; i++) {
-            if (strcasecmp(head->dsNhanVien[i].maNV, maNV) == 0) {
-                return 1;
-            }
-        }
-        head = head->next;
-    }
-    return 0;
-}
-//ham them nhan vien vao phong ban
-void themNhanVienVaoPhongBan(phongBan **head, NhanVien *nv, int m) {
-    if (*head == NULL) {
-        printf("Chua co phong ban nao !\n");
-        return;
-    }
-    char tenPb[30];
-    printf("Nhap ten phong ban ma ban muon them nhan vien: ");
-    fgets(tenPb, sizeof(tenPb), stdin);
-    tenPb[strcspn(tenPb, "\n")] = '\0';
-    phongBan *pb = *head;
-    while (pb != NULL && strcmp(tenPb, pb->tenPB) != 0) {
-        pb = pb->next;
-    }
-    if (pb == NULL) {
-        printf("Khong tim thay phong ban !\n");
-        return;
-    }
-    int sl;
-    printf("Nhap so luong nhan vien muon them vao: ");
-    scanf("%d", &sl);
-    getchar();
-    for (int j = 0; j < sl; j++) {
-        char hoten[50];
-        printf("Nhap ho ten nhan vien muon them vao: ");
-        fgets(hoten, sizeof(hoten), stdin);
-        hoten[strcspn(hoten, "\n")] = '\0';
-        int timThay = 0;
-        int viTri = -1;
-        for (int i = 0; i < m; i++) {
-            if (strcmp(hoten, nv[i].hoTen) == 0) {
-                viTri = i;
-                timThay = 1;
-                break;
-            }
-        }
-        if (!timThay) {
-            printf("Nhan vien nay khong ton tai trong danh sach nhan vien!\n");
-            continue;
-        }
-        if (nhanVienDaCoTrongPhongBan(*head, nv[viTri].maNV)) {
-            printf("Nhan vien '%s' da nam trong mot phong ban khac!\n", hoten);
-            continue;
-        }
-        pb->dsNhanVien = realloc(pb->dsNhanVien, sizeof(NhanVien) * (pb->slNhanVien + 1));
-        if (pb->dsNhanVien == NULL) {
-            printf("Khong du bo nho de them nhan vien!\n");
-            return;
-        }
-       pb->dsNhanVien[pb->slNhanVien] = nv[viTri]; // copy cơ bản
-        pb->dsNhanVien[pb->slNhanVien].LichLam = cloneLichLam(nv[viTri].LichLam);
-        pb->dsNhanVien[pb->slNhanVien].tangCa = cloneTangCa(nv[viTri].tangCa);
-        pb->dsNhanVien[pb->slNhanVien].lichNghi = cloneLichNghi(nv[viTri].lichNghi);
-        pb->slNhanVien++;
-        printf("Them nhan vien '%s' vao phong ban '%s' thanh cong!\n", hoten, pb->tenPB);
-    }
-}
-//ham in danh sach sinh vien trong phong ban
-void inDanhSachNhanVienCuaPhong(phongBan *head){
-        if(head == NULL){
-                printf("Danh sach phong ban rong !\n");
-                return;
-        }
-        while(head!=NULL){
-                if(head->slNhanVien==0||head->dsNhanVien==NULL){
-                        head=head->next;
-                        continue;
-                }
-                int stt=0;
-                printf("\n====================DANH SACH NHAN VIEN CUA PHONG %s===================\n",head->tenPB);
-                printf("---------------------------------------------------------------------------------------\n");
-                printf("|stt|Ho va ten             |Ma nhan vien|Gioi tinh|Ngay sinh  |Ngay lam   |Luong      |\n");
-                for(int i=0;i<head->slNhanVien;i++){
-                printf("---------------------------------------------------------------------------------------\n");
-                printf("|%-3d|%-22s|%-12s|%-9s|%-11s|%-11s|%6.3f/gio|\n",++stt,head->dsNhanVien[i].hoTen,head->dsNhanVien[i].maNV,head->dsNhanVien[i].gioiTinh,head->dsNhanVien[i].ngaySinh,head->dsNhanVien[i].ngayLam,head->dsNhanVien[i].luong);
-                }
-                printf("---------------------------------------------------------------------------------------\n");
-                head=head->next;
-        }
-}
 void freedsGioiTinh(NhanVien **nvNam, NhanVien **nvNu) {
     if (*nvNam != NULL) {
         free(*nvNam);
@@ -1048,18 +746,6 @@ void freedsGioiTinh(NhanVien **nvNam, NhanVien **nvNu) {
     if (*nvNu != NULL) {
         free(*nvNu);
         *nvNu = NULL;
-    }
-}
-
-void freePhongBan(phongBan *head) {
-    while (head != NULL) {
-        phongBan *current = head;
-        head = head->next;
-        if (current->dsNhanVien != NULL) {
-            free(current->dsNhanVien);
-            current->dsNhanVien = NULL;
-        }
-        free(current);
     }
 }
 // Ghi thong tin tat ca nhan vien ra file van ban
@@ -1086,56 +772,6 @@ void ghiThongTinTatCaNhanVien(NhanVien *Nv, int m, const char *filename) {
     }
     fclose(f);
     printf("Da ghi thong tin tat ca %d nhan vien vao file %s\n", m, filename);
-}
-
-// Ghi thong tin phong ban da cho ra van ban
-void ghiThongTinPhongBan(phongBan *dsPhong, const char *filename) {
-    if (!dsPhong) {
-        printf("Khong co phong ban de ghi thong tin.\n");
-        return;
-    }
-    printf("Danh sach phong ban:\n");
-    phongBan *p = dsPhong;
-    int idx = 0;
-    while (p) {
-        printf("%d. %s\n", ++idx, p->tenPB);
-        p = p->next;
-    }
-    if (idx == 0) {
-        printf("Khong co phong ban nao.\n");
-        return;
-    }
-    int choice;
-    do {
-        printf("Chon phong ban muon ghi thong tin (1-%d): ", idx);
-        scanf("%d", &choice);
-        getchar();
-    } while (choice < 1 || choice > idx);
-    p = dsPhong;
-    for (int i = 1; i < choice; i++)
-        p = p->next;
-    if (p->slNhanVien <= 0) {
-        printf("Phong ban '%s' chua co nhan vien.\n", p->tenPB);
-        return;
-    }
-    FILE *f = fopen(filename, "a");
-    if (!f) {
-        perror("Loi mo file");
-        return;
-    }
-    fprintf(f, "===== PHONG BAN: %s =====\n\n", p->tenPB);
-    for(int i = 0; i < p->slNhanVien; i++){
-        fprintf(f, "----- Nhan vien thu %d -----\n", i + 1);
-        fprintf(f, "Ma NV    : %s\n", p->dsNhanVien[i].maNV);
-        fprintf(f, "Ho va ten: %s\n", p->dsNhanVien[i].hoTen);
-        fprintf(f, "Ngay sinh: %s\n", p->dsNhanVien[i].ngaySinh);
-        fprintf(f, "Gioi tinh: %s\n", p->dsNhanVien[i].gioiTinh);
-        fprintf(f, "Ngay lam : %s\n", p->dsNhanVien[i].ngayLam);
-        fprintf(f, "Luong    : %.2f\n", p->dsNhanVien[i].luong);
-        fprintf(f, "---------------------------\n\n");
-    }
-    fclose(f);
-    printf("Da ghi thong tin phong ban '%s' (%d NV) vao file %s\n",p->tenPB, p->slNhanVien, filename);
 }
 //Ghi lich lam tat ca nhan vien ra file van ban
 void ghiLichLamNhanVien(NhanVien *nv,int m){
@@ -1193,164 +829,6 @@ void ghiLichLamNhanVien(NhanVien *nv,int m){
         }
         fclose(f);
 }
-//ham doc du lieu tin file luu thong tin tat ca nhan vien
-void DocFileDanhSachNhanVien(NhanVien *nv, int m, const char *filename) {
-    FILE *f = fopen(filename, "r");
-    if (!f) {
-        printf("Khong mo duoc file %s\n", filename);
-        return;
-    }
-    char buffer[256];
-    fgets(buffer, sizeof(buffer), f);
-    for (int i = 0; i < m; i++) {
-        fgets(buffer, sizeof(buffer), f);
-        fgets(buffer, sizeof(buffer), f); sscanf(buffer, "Ma NV    : %[^]", nv[i].maNV);
-        fgets(buffer, sizeof(buffer), f); sscanf(buffer, "Ho va ten: %[^]", nv[i].hoTen);
-        fgets(buffer, sizeof(buffer), f); sscanf(buffer, "Ngay sinh: %[^]", nv[i].ngaySinh);
-        fgets(buffer, sizeof(buffer), f); sscanf(buffer, "Gioi tinh: %[^]", nv[i].gioiTinh);
-        fgets(buffer, sizeof(buffer), f); sscanf(buffer, "Ngay lam : %[^]", nv[i].ngayLam);
-        fgets(buffer, sizeof(buffer), f); sscanf(buffer, "Luong    : %f", &nv[i].luong);
-        fgets(buffer, sizeof(buffer), f);
-        fgets(buffer, sizeof(buffer), f);
-    }
-    fclose(f);
-    printf("Da doc thong tin cua %d nhan vien tu file %s\n", m, filename);
-}
-//ham doc file phong ban
-void docFilePhongBan(phongBan *dsPhong, const char *filename) {
-    if (!dsPhong) {
-        printf("Khong co phong ban de ghi thong tin.\n");
-        return;
-    }
-    printf("Danh sach phong ban:\n");
-    phongBan *p = dsPhong;
-    int idx = 0;
-    while (p) {
-        printf("%d. %s\n", ++idx, p->tenPB);
-        p = p->next;
-    }
-    if (idx == 0) {
-        printf("Khong co phong ban nao.\n");
-        return;
-    }
-    int choice;
-    do {
-        printf("Chon phong ban muon ghi thong tin (1-%d): ", idx);
-        scanf("%d", &choice);
-        getchar();
-    } while (choice < 1 || choice > idx);
-    p = dsPhong;
-    for (int i = 1; i < choice; i++) p = p->next;
-    if (p->slNhanVien <= 0) {
-        printf("Phong ban '%s' chua co nhan vien.\n", p->tenPB);
-        return;
-    }
-    FILE *f = fopen(filename, "r");
-    if (!f) {
-        printf("Loi mo file !\n");
-        return;
-    }
-    char buffer[256];
-    if (fgets(buffer, sizeof(buffer), f)) {
-        sscanf(buffer, "===== PHONG BAN: %[^\n=] =", p->tenPB);
-        p->tenPB[strcspn(p->tenPB, "\n")] = '\0';
-    }
-    for (int i = 0; i < p->slNhanVien; i++) {
-        fscanf(f, "----- Nhan vien thu %*d -----\n");
-        fscanf(f, "Ma NV    : %[^\n]\n", p->dsNhanVien[i].maNV);
-        fscanf(f, "Ho va ten: %[^\n]\n", p->dsNhanVien[i].hoTen);
-        fscanf(f, "Ngay sinh: %[^\n]\n", p->dsNhanVien[i].ngaySinh);
-        fscanf(f, "Gioi tinh: %[^\n]\n", p->dsNhanVien[i].gioiTinh);
-        fscanf(f, "Ngay lam : %[^\n]\n", p->dsNhanVien[i].ngayLam);
-        fscanf(f, "Luong    : %f\n", &p->dsNhanVien[i].luong);
-        fgets(buffer, sizeof(buffer), f);
-        fgets(buffer, sizeof(buffer), f);
-    }
-    fclose(f);
-    printf("Da doc thong tin phong ban '%s' (%d NV) tu file %s\n", p->tenPB, p->slNhanVien, filename);
-}
-//ham doc thong tin ca lam cua tat ca nhan vien
-void docThongTinLichLam(NhanVien *ds, int soLuong, const char *tenTep) {
-    FILE *tep = fopen(tenTep, "r");
-    if (!tep) {
-        printf("Khong the mo tep %s!\n", tenTep);
-        return;
-    }
-    char dong[256];
-    while (fgets(dong, sizeof(dong), tep)) {
-        char hoTen[50], maNV[12];
-        if (sscanf(dong, "Nhan vien: %[^|]| Ma NV: %s", hoTen, maNV) != 2) {
-            continue;
-        }
-        NhanVien *nvTarget = NULL;
-        for (int i = 0; i < soLuong; i++) {
-            if (strcmp(ds[i].maNV, maNV) == 0) {
-                nvTarget = &ds[i];
-                break;
-            }
-        }
-        if (!nvTarget) {
-            while (fgets(dong, sizeof(dong), tep) && strncmp(dong, "-------------------------------------------------", 10) != 0);
-            continue;
-        }
-        nvTarget->LichLam = NULL;
-        nvTarget->tangCa = NULL;
-        nvTarget->lichNghi = NULL;
-        if (!fgets(dong, sizeof(dong), tep)) break;
-        if (!fgets(dong, sizeof(dong), tep)) break;
-        LichLam *cuoiLL = NULL;
-        if (strncmp(dong, "Khong co", 8) != 0) {
-            do {
-                if (dong[0] != '[') break;
-                LichLam *moi = (LichLam *)malloc(sizeof(LichLam));
-                if (!moi) break;
-                sscanf(dong, "[%*d]. Ca %s - (%[^)] - %[^)])", moi->caLam, moi->batDau, moi->ketThuc);
-                moi->caLam[strcspn(moi->caLam, "\n")] = '\0';
-                moi->next = NULL;
-                if (!cuoiLL) nvTarget->LichLam = cuoiLL = moi;
-                else cuoiLL = cuoiLL->next = moi;
-            } while (fgets(dong, sizeof(dong), tep));
-        } else {
-            fgets(dong, sizeof(dong), tep);
-        }
-        if (strncmp(dong, "Lich tang ca:", 13) != 0) fgets(dong, sizeof(dong), tep);
-        tangCa *cuoiTC = NULL;
-        if (strncmp(dong, "Khong co", 8) != 0) {
-            do {
-                if (dong[0] != '[') break;
-                tangCa *moi = (tangCa *)malloc(sizeof(tangCa));
-                if (!moi) break;
-                sscanf(dong, "[%*d]. Ngay %s - Ca %s - (%[^)] - %[^)])", moi->ngayTangCa, moi->caTang, moi->batDau, moi->ketThuc);
-                moi->caTang[strcspn(moi->caTang, "\n")] = '\0';
-                moi->next = NULL;
-                if (!cuoiTC) nvTarget->tangCa = cuoiTC = moi;
-                else cuoiTC = cuoiTC->next = moi;
-            } while (fgets(dong, sizeof(dong), tep));
-        } else {
-            fgets(dong, sizeof(dong), tep);
-        }
-        if (strncmp(dong, "Lich nghi:", 10) != 0) fgets(dong, sizeof(dong), tep);
-        lichNghi *cuoiLN = NULL;
-        if (strncmp(dong, "Khong co", 8) != 0) {
-            do {
-                if (dong[0] != '[') break;
-                lichNghi *moi = (lichNghi *)malloc(sizeof(lichNghi));
-                if (!moi) break;
-                sscanf(dong, "[%*d]. Ngay %s - Ca %s - (%[^)] - %[^)])", moi->ngayNghi, moi->caNghi, moi->batDau, moi->ketThuc);
-                moi->caNghi[strcspn(moi->caNghi, "\n")] = '\0';
-                moi->next = NULL;
-                if (!cuoiLN) nvTarget->lichNghi = cuoiLN = moi;
-                else cuoiLN = cuoiLN->next = moi;
-            } while (fgets(dong, sizeof(dong), tep));
-        }
-        while (fgets(dong, sizeof(dong), tep)) {
-            if (strncmp(dong, "-------------------------------------------------", 10) == 0)
-                break;
-        }
-    }
-    fclose(tep);
-    printf("Da doc file lich lam %s thanh cong.\n", tenTep);
-}
 //ham giai phong bo nho cua con tro lich lam
 void freeLichLam(NhanVien *nv, int m) {
     for (int i = 0; i < m; i++) {
@@ -1386,113 +864,7 @@ void freeTangCa(NhanVien *nv, int m) {
         nv[i].tangCa = NULL;
     }
 }
-//ham thay doi thong tin nhan vien phong ban
-void thayDoiThongTinNhanVienPhongBan(phongBan **head, char *maNv ,NhanVien *nv,int m){
-        if(*head==NULL){
-                printf("Chua co phong ban nao !\n");
-                return;
-        }
-        phongBan *temp=*head;
-        while(temp!=NULL){
-                if(temp->dsNhanVien==NULL||temp->slNhanVien==0){
-                        temp=temp->next;
-                        continue;
-                }
-                for(int i=0;i<temp->slNhanVien;i++){
-                        if(strcmp(temp->dsNhanVien[i].maNV,maNv)==0){
-                                printf("Nhap thong tin moi:\n");
-                                printf("Nhap ho ten: ");
-                                fgets(temp->dsNhanVien[i].hoTen,sizeof(temp->dsNhanVien[i].hoTen),stdin);
-                                temp->dsNhanVien[i].hoTen[strcspn(temp->dsNhanVien[i].hoTen,"\n")]='\0';
-                                printf("Gioi tinh: ");
-                                fgets(temp->dsNhanVien[i].gioiTinh,sizeof(temp->dsNhanVien[i].gioiTinh),stdin);
-                                temp->dsNhanVien[i].gioiTinh[strcspn(temp->dsNhanVien[i].gioiTinh,"\n")]='\0';
-                                printf("Nhap ngay sinh (vd: 09/11/2006): ");
-                                fgets(temp->dsNhanVien[i].ngaySinh,sizeof(temp->dsNhanVien[i].ngaySinh),stdin);
-                                temp->dsNhanVien[i].ngaySinh[strcspn(temp->dsNhanVien[i].ngaySinh,"\n")]='\0';
-                                printf("Nhap ngay lam (vd: 09/11/2006): ");
-                                fgets(temp->dsNhanVien[i].ngayLam,sizeof(temp->dsNhanVien[i].ngayLam),stdin);
-                                temp->dsNhanVien[i].ngayLam[strcspn(temp->dsNhanVien[i].ngayLam,"\n")]='\0';
-                                printf("Nhap ma nhan vien: ");
-                                fgets(temp->dsNhanVien[i].maNV,sizeof(temp->dsNhanVien[i].maNV),stdin);
-                                temp->dsNhanVien[i].maNV[strcspn(temp->dsNhanVien[i].maNV,"\n")]='\0';
-                                printf("Luong: ");
-                                scanf("%f",&temp->dsNhanVien[i].luong);
-                                getchar();
-                                for(int j=0;j<m;j++){
-                                        if(strcmp(nv[j].maNV,maNv)==0){
-                                                strcpy(nv[j].hoTen,temp->dsNhanVien[i].hoTen);
-                                                strcpy(nv[j].gioiTinh,temp->dsNhanVien[i].gioiTinh);
-                                                strcpy(nv[j].ngaySinh,temp->dsNhanVien[i].ngaySinh);
-                                                strcpy(nv[j].ngayLam,temp->dsNhanVien[i].ngayLam);
-                                                strcpy(nv[j].maNV,temp->dsNhanVien[i].maNV);
-                                                nv[j].luong=temp->dsNhanVien[i].luong;
-                                                printf("Da cap nhan thong tin.\n");
-                                                return;
-                                        }
-                                }
-                        }
-                }
-                temp=temp->next;
-        }
-        if(temp==NULL)
-                printf("Khong tim thay nhan vien !");
-}
-//ham thong ke nhan vien co ki luat cao nhan cua tung phong ban
-void thongKeKyLuatPhongBan(phongBan *dsPhong, int thang, int nam) {
-    while (dsPhong != NULL){
-        if (dsPhong->dsNhanVien == NULL || dsPhong->slNhanVien == 0){
-            printf("\nPhong ban '%s' khong co nhan vien!\n", dsPhong->tenPB);
-            dsPhong = dsPhong->next;
-            continue;
-        }
-        printf("\n=== PHONG BAN: %s ===\n", dsPhong->tenPB);
-        float lech1 = -99999;
-        float lech2 = 99999;
-        int test1 = -1, test2 = -1;
-        for (int i = 0; i < dsPhong->slNhanVien; i++){
-            NhanVien nv = dsPhong->dsNhanVien[i];
-            float gioThucTe = tinhGioLam(nv, thang, nam);
-            if (gioThucTe == 0) continue;
-            float gioCoDinh = tinhGioLamCoDinh(nv);
-            float lech = gioThucTe - gioCoDinh;
-            if (lech >= 0 && lech > lech1) {
-                lech1 = lech;
-                test1 = i;
-            }
-            if (lech < 0 && lech < lech2) {
-                lech2 = lech;
-                test2 = i;
-            }
-        }
-        if (test1 != -1){
-            NhanVien nv = dsPhong->dsNhanVien[test1];
-            printf("-> Nhan vien lam vuot gio nhieu nhat: %s (Ma: %s)\n", nv.hoTen, nv.maNV);
-            printf("   Gio lam thuc te: %.2f | Gio lam co dinh: %.2f | Lech: +%.2f\n",
-                   tinhGioLam(nv, thang, nam), tinhGioLamCoDinh(nv), lech1);
-        } else {
-            printf("-> Khong co nhan vien lam vuot gio.\n");
-        }
-        if (test2 != -1){
-            NhanVien nv = dsPhong->dsNhanVien[test2];
-            printf("-> Nhan vien lam thieu gio nhieu nhat: %s (Ma: %s)\n", nv.hoTen, nv.maNV);
-            printf("   Gio lam thuc te: %.2f | Gio lam co dinh: %.2f | Lech: %.2f\n",
-                   tinhGioLam(nv, thang, nam), tinhGioLamCoDinh(nv), lech2);
-        } else {
-            printf("-> Tat ca nhan vien deu lam dung gio hoac vuot gio.\n");
-        }
-        dsPhong = dsPhong->next;
-    }
-}
-
-int main() {
-    NhanVien *Nv = NULL;
-    int m = 0;
-    phongBan *dsPhongBan = NULL;
-    NhanVien *NvNam = NULL, *NvNu = NULL;
-    int demNam = 0, demNu = 0;
-    int choice;
-    do {
+void MENU(){
         printf("\n=================================================================\n");
         printf("|                     MENU QUAN LY NHAN VIEN                    |\n");
         printf("=================================================================\n");
@@ -1505,7 +877,7 @@ int main() {
         printf("| 6. Tim nhan vien sap nghi huu                                 |\n");
         printf("| 7. Hien thi danh sach nhan vien                               |\n");
         printf("| 8. Thong ke gio lam va luong theo thang                       |\n");
-        printf("| 9. Ghi va doc thong tin tat ca nhan vien ra file              |\n");
+        printf("| 9. Ghi thong tin tat ca nhan vien ra file                     |\n");
         printf("|---------------------------LICH LAM----------------------------|\n");
         printf("| 10. Nhap lich lam co dinh cho nhan vien                       |\n");
         printf("| 11. Them ca lam co dinh moi cho mot nhan vien                 |\n");
@@ -1514,20 +886,18 @@ int main() {
         printf("| 14. Dang ky lich nghi cho nhan vien                           |\n");
         printf("| 15. In chi tiet lich lam tat ca nhan vien                     |\n");
         printf("| 16. In chi tiet lich lam mot nhan vien                        |\n");
-        printf("| 17. Ghi va doc file lich lam cua tat ca nhan vien             |\n");
-        printf("|---------------------------PHONG BAN---------------------------|\n");
-        printf("| 18. Them phong ban moi                                        |\n");
-        printf("| 19. Them nhan vien vao phong ban                              |\n");
-        printf("| 20. cap nhat thong tin nhan vien cua phong ban                |\n");
-        printf("| 21. Xoa thong tin nhan vien cua phong ban                     |\n");
-        printf("| 22. Hien thi danh sach nhan vien theo phong ban               |\n");
-        printf("| 23. Ghi thong tin phong ban ra file                           |\n");
-        printf("| 24. Doc thong tin trong file da ghi thong tin phong ban       |\n");
-        printf("| 25. Cap nhat thong tin moi cho phong ban                      |\n");
-        printf("| 26. Thong ke nhan vien giu ki luat tot nhat o tung phong ban  |\n");
-        printf("| 0. Thoat                                                      |\n");
+        printf("| 17. Ghi file lich lam cua tat ca nhan vien                    |\n");
         printf("|---------------------------------------------------------------|\n");
         printf("=================================================================\n");
+}
+int main() {
+    NhanVien *Nv = NULL;
+    int m = 0;
+    NhanVien *NvNam = NULL, *NvNu = NULL;
+    int demNam = 0, demNu = 0;
+    int choice;
+    do {
+        MENU();
         printf("Nhap lua chon: ");
         scanf("%d", &choice);
         getchar();
@@ -1544,25 +914,27 @@ int main() {
                 break;
             }
             case 2:
-                capNhatThongTinNhanVien(Nv, m,dsPhongBan);
+                capNhatThongTinNhanVien(Nv, m);
                 break;
             case 3:
-                xoaNhanVien(Nv, &m,&dsPhongBan);
+                xoaNhanVien(Nv, &m);
                 if (m == 0) {
                 free(Nv);
                 Nv = NULL;
                  }
                 break;
             case 4:
-                    sapxeptheoDoTuoi(Nv, m);
+                sapxeptheoDoTuoi(Nv, m);
                 inDanhSachNhanVien(Nv, m);
                 break;
             case 5:
                 freedsGioiTinh(&NvNam, &NvNu);
                 demNam = demNu = 0;
                 tachDanhSach(Nv, &NvNam, &NvNu, m, &demNam, &demNu);
-                if (demNam) inDanhSachNhanVien(NvNam, demNam);
-                if (demNu) inDanhSachNhanVien(NvNu, demNu);
+                if (demNam)
+                        inDanhSachNhanVien(NvNam, demNam);
+                if (demNu)
+                        inDanhSachNhanVien(NvNu, demNu);
                 break;
             case 6:
                 timNhanVienSapNghiHuu(Nv, m);
@@ -1588,8 +960,6 @@ int main() {
             case 9:
                 ghiThongTinTatCaNhanVien(Nv, m, "tatca_nv.txt");
                 printf("Da ghi ra file tatca_nv.txt\n");
-                DocFileDanhSachNhanVien(Nv, m, "tatca_nv.txt");
-                printf("Da doc lai du lieu tu file!\n");
                 break;
             case 10:
                 nhapLichLam(Nv, m);
@@ -1615,76 +985,6 @@ int main() {
             case 17:
                 ghiLichLamNhanVien(Nv, m);
                 printf("Da ghi lich lam vao file LichLam.txt\n");
-               docThongTinLichLam(Nv, m, "LichLam.txt");
-                printf("Da doc lai lich lam tu file!\n");
-                break;
-            case 18:
-                themPhongBan(&dsPhongBan);
-                break;
-            case 19:
-                themNhanVienVaoPhongBan(&dsPhongBan, Nv, m);
-                break;
-             case 20: {
-                char  tenPB[30];
-                printf("Nhap ten phong ban: ");
-                fgets(tenPB, sizeof(tenPB), stdin);
-                tenPB[strcspn(tenPB, "\n")] = '\0';
-                phongBan *temp=dsPhongBan;
-                while(temp!=NULL){
-                        if(strcasecmp(tenPB,temp->tenPB)==0){
-                                break;
-                        }
-                        temp=temp->next;
-                }
-                if(temp==NULL){
-                        printf("Khong tim ra phong ban !\n");
-                        break;
-                        }
-                else{
-                        char maNv[12];
-                        printf("Nhap ma nhan vien muon cap nhat: ");
-                        fgets(maNv, sizeof(maNv), stdin);
-                        maNv[strcspn(maNv, "\n")] = '\0';
-                        thayDoiThongTinNhanVienPhongBan(&dsPhongBan, maNv, Nv, m);
-                        break;
-                        }
-                }
-             case 21: {
-                char maNv[12];
-                printf("Nhap ma nhan vien muon xoa khoi phong ban: ");
-                fgets(maNv, sizeof(maNv), stdin);
-                maNv[strcspn(maNv, "\n")] = '\0';
-                xoaThongTinNhanVienPhongBan(&dsPhongBan, maNv);
-                break;
-                }
-             case 22:
-                inDanhSachNhanVienCuaPhong(dsPhongBan);
-                break;
-             case 23:
-                 ghiThongTinPhongBan(dsPhongBan, "phongban.txt");
-                printf("Da ghi phong ban ra file phongban.txt\n");
-                break;
-             case 24:
-                docFilePhongBan(dsPhongBan, "phongban.txt");
-                printf("Da doc lai thong tin phong ban tu file!\n");
-                break;
-             case 25:
-                capNhatThongTinNhanVienVaoPhongBan(Nv, m, dsPhongBan);
-                break;
-             case 26: {
-                int thang;
-                do {
-                        printf("Nhap thang (1-12): ");
-                        scanf("%d", &thang);
-                        getchar();
-                } while (thang < 1 || thang > 12);
-                int nam;
-                printf("Nhap nam: ");
-                    scanf("%d", &nam);
-                    getchar();
-                thongKeKyLuatPhongBan(dsPhongBan, thang,nam);
-                break;
-                }
             case 0:
                 printf("Dang thoat chuong trinh...\n");
                 break;
@@ -1699,7 +999,6 @@ int main() {
         free(Nv);
     }
         freedsGioiTinh(&NvNam, &NvNu);
-        freePhongBan(dsPhongBan);
     printf("Chuong trinh ket thuc.\n");
     return 0;
 }
